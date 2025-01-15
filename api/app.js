@@ -14,9 +14,22 @@ import { Chat } from './schema/chat.schema.js';
 dotenv.config();
 
 const corsOptions = {
-    origin: "http://localhost:5173",
-    credentials: true,
-};
+    origin: function (origin, callback) {
+      // List of allowed origins
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://chat-app-frontened-self.vercel.app',
+      ];
+      
+      // Check if the request's origin is in the allowed origins list
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true); // Allow the request
+      } else {
+        callback(new Error('Not allowed by CORS')); // Reject the request
+      }
+    },
+    credentials: true, // Allow credentials (cookies, headers, etc.)
+  };
 
 export const app = express();
 export const server = http.createServer(app);
