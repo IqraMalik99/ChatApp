@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+
+@layer utilities {
+  .text-outline-purple {
+    -webkit-text-stroke: 1px rgb(221, 32, 221);
+    color: white;
+  } 
+  /* Make the scrollbar very small */
+/* Custom Scrollbar Styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px; /* Tiny scrollbar width */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Invisible track */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(128, 128, 128, 0.5); /* Gray, semi-transparent thumb */
+  border-radius: 10px; /* Rounded scrollbar thumb */
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.5) transparent; /* For Firefox */
+}
+
+
+}
+
+body{
+  height: 100vh;
+  overflow-x : hidden;
+  /* overflow-y: scroll; */
+  background-color: rgb(233 213 255) !important ;
+}
+
+
