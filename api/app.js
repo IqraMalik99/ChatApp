@@ -12,7 +12,10 @@ import { getSockets } from './utilities/Event.js';
 import { Chat } from './schema/chat.schema.js';
 
 dotenv.config();
-
+const permittedOrigins = [
+    "http://localhost:5173",
+    'http://chat-app-frontened-self.vercel.app',
+  ];
 const corsOptions = {
     origin: function (origin, callback) {
       // List of allowed origins
@@ -35,7 +38,7 @@ export const app = express();
 export const server = http.createServer(app);
 export const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: permittedOrigins,
         methods: ["GET", "POST"],
         allowedHeaders: ["Content-Type"],
         credentials: true,
