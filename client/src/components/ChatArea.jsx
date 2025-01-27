@@ -20,6 +20,8 @@ function ChatArea() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [memberChat, setMemberChat] = useState([]);
+  let [notification, setnotification] = useState([]);
+  const [notificationCount, setnotificationCount] = useState(0);
   const NEW_MESSAGE = 'NEW_MESSAGE';
   const fileref = useRef();
   const navigate = useNavigate();
@@ -65,14 +67,36 @@ function ChatArea() {
       console.log("new message",  newMessageForRealTime); 
       setMessages((prevMessages) => [...prevMessages,newMessageForRealTime]); 
     };
+    let handleMessageCount=({ newMessageForRealTime})=>{
+      console.log(newMessageForRealTime,"newmsgh");
+      console.log(newMessageForRealTime.chatId);
+      console.log(chatId);
+      if(chatId != newMessageForRealTime.chatId){
+        setnotificationCount((prev) => prev + 1 );
+        console.log("notification count", notificationCount);
+        
+      }
+    }
+    
+    const handleTyping = ({ chatId, username }) => {
+      toast.dismiss('typing-notification');
+      toast.success(`${username} is typing...`, {
+        style: { background: 'purple', color: 'white' },
+        position: 'bottom-center',
+        id: 'typing-notification',
+        autoClose: 1000,
+      });
+    };
+  
     socket.on(NEW_MESSAGE, handleMessage);
-    socket.on("START_TYPING_SHOW",({chatId,username})=>{
-      toast.dismiss('typing-notification'); // Dismiss existing notification
-      toast.success(`${username} is typing...`, {style: { background: "purple", color: "white" }, icon:"", position: "bottom-center", id: 'typing-notification', autoClose: 1000 });    })
+    socket.on('START_TYPING_SHOW', handleTyping);
+    socket.on("NEW_MESSAGE_COUNT",handleMessageCount);
     return () => {
       socket.off(NEW_MESSAGE, handleMessage);
+      socket.off("START_TYPING_SHOW",handleTyping);
+      socket.off("NEW_MESSAGE_COUNT", handleMessageCount);
     };
-  }, [socket]);
+  }, [socket,chatId]);
 
   useEffect(() => {
     const fetcher = async () => {

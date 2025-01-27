@@ -159,11 +159,14 @@ function UserModel() {
     socket.on(REFETCH_CHATS, async({})=>{
       let fetcher = async () => {
         try {
-          const response = await axios.get('http://localhost:3000/chat/get-chat', { withCredentials: true });
+          const response = await axios.get('http://localhost:3000/chat/get-chat',
+          { withCredentials: true 
+          });
           setFriends(response.data);
           console.log(response.data, " my chats");
         } catch (error) {
           console.error("Error fetching data: ", error);
+          console.log("Error in data fetching");
         }
       };
       fetcher();
@@ -178,11 +181,14 @@ function UserModel() {
   useEffect(() => {
     let fetcher = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/chat/get-chat', { withCredentials: true });
+        const response = await axios.get('http://localhost:3000/chat/get-chat', {
+         withCredentials: true ,
+           });
         setFriends(response.data);
         console.log(response.data, " my chats");
       } catch (error) {
         console.error("Error fetching data: ", error);
+        console.log("Error in data fetching");
       }
     };
     fetcher();

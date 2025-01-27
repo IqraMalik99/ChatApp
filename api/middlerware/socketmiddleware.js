@@ -6,7 +6,7 @@ export const socketAuthentication =async(err,socket,next)=>{
    try {
      const accessToken = socket.request.cookies.accessToken;
      if (!accessToken) {
-         throw new ApiError(400, "Token not found in cookies");
+         throw new ApiError(400, "Token not found in cookies for sockets");
      }
  
      // Verify the JWT token

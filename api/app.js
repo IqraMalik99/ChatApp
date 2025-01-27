@@ -12,54 +12,47 @@ import { getSockets } from './utilities/Event.js';
 import { Chat } from './schema/chat.schema.js';
 
 dotenv.config();
-const permittedOrigins = [
-    "http://localhost:5173",
-    'http://chat-app-frontened-self.vercel.app',
-  ];
+// const permittedOrigins = [
+//     'https://chat-app-frontened-self.vercel.app',
+//     "http://localhost:5173",
+//   ];
 const corsOptions = {
-    origin: function (origin, callback) {
-      // List of allowed origins
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://chat-app-frontened-self.vercel.app',
-      ];
-      
-      // Check if the request's origin is in the allowed origins list
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true); // Allow the request
-      } else {
-        callback(new Error('Not allowed by CORS')); // Reject the request
-      }
-    },
+    origin:' http://localhost:5173',
+    allowedHeaders: ["Content-Type"],
     credentials: true, // Allow credentials (cookies, headers, etc.)
   };
 
 export const app = express();
 export const server = http.createServer(app);
-export const io = new Server(server, {
-    cors: {
-        origin: permittedOrigins,
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type"],
-        credentials: true,
-    }
-});
+
+app.use(cors(corsOptions));
 
 export let userSocketsIds = new Map();
 export let onlineUsers = new Set();
 let START_TYPING_SHOW="START_TYPING_SHOW";
 
-app.use(cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+
 app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message, error: err });
 });
 
-app.set("io", io);
+
 
 // Middleware for socket authentication
+
+
+export const io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:5173',
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type",'Authorization'],
+        credentials: true,
+    }
+});
+
 io.use((socket, next) => {
     cookieParser()(
         socket.request,
@@ -67,8 +60,9 @@ io.use((socket, next) => {
         async (err) => await socketAuthentication(err, socket, next)
     );
     console.log("Socket authenticated successfully");
-});
+});  
 
+app.set("io", io);
 io.on("connection", (socket) => {
     const user = socket.user;
     console.log("socket is :", socket.user);
@@ -100,6 +94,10 @@ io.on("connection", (socket) => {
     // **NEW_MESSAGE Event**
     socket.on(NEW_MESSAGE, async ({ sender, content, chatId, members }) => {
         console.log("Received NEW_MESSAGE event:", { content, chatId, members });
+        // receiver ids exclude sender
+        let notificationMembers = members.length>0?members.filter((mem)=> mem.toString() != user._id.toString()):[];
+        // getting their sockets
+        let recIdsExMem  = getValidSockets(notificationMembers);
 
         if (!Array.isArray(members)) {
             console.error("Invalid member data for NEW_MESSAGE:", members);
@@ -117,12 +115,14 @@ io.on("connection", (socket) => {
                 },
                 createdAt: new Date().toString(),
                 _id: uuidv4(),
+                read:false
             };
         }
         const newMessageForDB = {
             content,
             sender: user._id,
             chatId,
+            read:false
         };
         console.log("New message for real time is ,", newMessageForRealTime);
 
@@ -143,14 +143,25 @@ io.on("connection", (socket) => {
                     try {
                         console.log("new new new:", newMessageForRealTime);
                         io.to(rec).emit(NEW_MESSAGE, { newMessageForRealTime });
+                       
                     } catch (error) {
                         console.error(`Failed to send message to socket ${rec}:`, error);
                     }
                 }
                 );
+               
                 try {
                     const msg = await Message.create(newMessageForDB);
                     console.log("Message created successfully:", msg);
+                    recIdsExMem.forEach((rec)=>{
+                        console.log("recExIds",rec);
+                        
+                        try {
+                            io.to(rec).emit('NEW_MESSAGE_COUNT',{ newMessageForRealTime })
+                        } catch (error) {
+                            console.error(`Failed to send notification to socket ${rec}:`, error);
+                        }
+                    });
                 } catch (error) {
                     console.error("Error saving message:", error);
                 }
@@ -206,10 +217,11 @@ recipients.map((rec)=>   io.to(rec).emit(FRIEND_REQUEST_ALERT, { sender })
     // **Typing Events**
     socket.on(START_TYPING, async({ chatId, userId }) => {
         let chatData = await Chat.findById(chatId);
-        let member = chatData.members.filter((mem)=> mem.toString() != userId.toString());
+        let member = chatData.members.length>=0?chatData.members.filter((mem)=> mem.toString() != userId.toString()):[];
         const recipients = getValidSockets(member);
         let username = user.username;
-        socket.to(recipients).emit(START_TYPING_SHOW, { chatId, username });
+        recipients.forEach((rec)=> socket.to(rec).emit(START_TYPING_SHOW, { chatId, username }))
+       
     });
 
     // socket.on(STOP_TYPING, ({ chatId, member }) => {

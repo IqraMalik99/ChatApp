@@ -56,8 +56,10 @@ export const newGroup = AsyncHandler(async (req, res, next) => {
 })
 
 export const getChats = AsyncHandler(async (req, res, next) => {
-  console.log(req.user);
-
+console.log(req.user);
+if(!req.user){
+  throw new ApiError(400,"ununun");
+}
   try {
     let myChats = await Chat.aggregate([
       {
@@ -424,12 +426,14 @@ export const createMessage = AsyncHandler(async (req, res) => {
 
 
   try {
+    console.log("attac entry");
     const { chatId } = req.body;
-
+ console.log(`my fi;e from multer  ${req.files}`);
     if (!req.user) {
       throw new ApiError(401, "Unauthorized");
     }
     console.log(" req user is", req.user);
+console.log("attac entry");
 
     if (!req.files || req.files.length === 0) {
       throw new ApiError(401, "No files were uploaded.");
@@ -443,6 +447,7 @@ export const createMessage = AsyncHandler(async (req, res) => {
       attachment.push(att); // Assuming Cloudinary returns `secure_url`
     }
    
+console.log("attachment",attachment);
 
     const newMessage = await Message.create({
       content: "",
@@ -478,6 +483,8 @@ export const createMessage = AsyncHandler(async (req, res) => {
       data: newMessage
     });
   } catch (error) {
+    console.log("attacherrro");
+    
     throw new ApiError(404, `Error is creating message with attachment ${error}`)
   }
 });

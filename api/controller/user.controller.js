@@ -31,8 +31,10 @@ let genToken = async (id) => {
     }
   }
   let options = {
-    secure: true,
-    httpOnly: true
+   path: '/', 
+   httpOnly: true, 
+   sameSite: 'Lax'
+    // sameSite: 'None'  in deploymnet
   }
   export const signIn = AsyncHandler(async (req, res, next) => {
     try {
@@ -50,7 +52,8 @@ let genToken = async (id) => {
       }
       console.log(user);
       
-      let checker = user.checkPassword(password);
+      let checker = await user.checkPassword(password);
+      console.log("checker",checker);
       if (!checker) {
         throw new ApiError(404, "Invalid password");
       }
@@ -120,9 +123,17 @@ let genToken = async (id) => {
       }
       getUser.refreshToken = "";
       await getUser.save({ validateBeforeSave: false });
-      return res.status(200).clearCookie("accessToken").clearCookie("refreshToken").json(new Responce(200, "user is logout"))
+         console.log("Sucessfully logout");
+
+     res.status(200);
+     res.clearCookie("accessToken",options);
+     res.clearCookie("refreshToken",options);
+     console.log("Sucessfully logout",req.cookies.accessToken);
+     return  res.json(new Responce(200,null,"user is logout"));
     } catch (error) {
-      throw new ApiError(404, "error in logout")
+      console.log("error in logout");
+      
+      throw new ApiError(401, "error in logout")
     }
   });
  

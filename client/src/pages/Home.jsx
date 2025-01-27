@@ -18,10 +18,10 @@ function Home({children}) {
     setHasKey(keyExists);
   }, []);
   
-  if(!hasKey){
-    dispatch(userState(null));
-    dispatch(userLogout());
-   }
+  // if(!hasKey){
+  //   dispatch(userState(null));
+  //   dispatch(userLogout());
+  //  }
   return (
     <div>
      <Header/>

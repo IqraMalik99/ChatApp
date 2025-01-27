@@ -77,7 +77,12 @@ userSchema.methods.genAccessToken = function () {
         { expiresIn: '2d' });
 }
 userSchema.methods.checkPassword = async function (password) {
-    return bcrypt.compare(password, this.password)
+    console.log(password, this.password,"My password");
+    let ans = await bcrypt.compare(password, this.password);
+   
+    
+    
+    return ans;
 }
 const User = mongoose.model('User', userSchema);
 export { User }

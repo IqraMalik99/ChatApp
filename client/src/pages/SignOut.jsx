@@ -12,19 +12,24 @@ let dispatch = useDispatch();
   useEffect(() => {
     let signout = async () => {
       try {
+        console.log("clicked");
+        
           const response = await axios.post('http://localhost:3000/user/sign-out', {}, {
             withCredentials: true, // Include credentials (cookies) with the request
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
             }
           });
           console.log('Signed out successfully:', response.data);
   persistor.purge();
   dispatch(userLogout());
     } catch (error) {
-        console.error('Error submitting form:', error);
+        console.error('Error submitting form in logout:', error);
+        dispatch(userLogout());
+        console.log("error")
       } finally {
-        navigate("/")
+        navigate("/");
+        dispatch(userLogout());
       }
     }
     signout();

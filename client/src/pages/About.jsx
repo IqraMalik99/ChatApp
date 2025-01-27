@@ -9,3 +9,6 @@ function About() {
 }
 
 export default About
+if(chatId != newMessageForRealTime.chatId){
+  notificationCount++;
+}
